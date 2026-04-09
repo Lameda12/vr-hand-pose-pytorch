@@ -50,9 +50,18 @@ Visualizer                                   skeleton overlay + gesture UI
 | Gesture state machine | `src/demo/gesture_state.py` | Pinch/point/fist/palm + drag delta |
 | Webcam demo | `src/demo/webcam_demo.py` | Full pipeline, drag-circle UI |
 | Visualizer | `src/demo/visualizer.py` | Per-finger colors, gesture overlays |
+| FreiHAND dataloader | `src/data/freihand.py` | RGB + 21-kp + depth, train/val/eval splits |
+| Gaussian heatmap GT | `src/data/heatmap_utils.py` | σ=2 Gaussian blobs, softargmax, coord scaling |
+| Data augmentation | `src/data/augmentation.py` | Flip, rotate, scale, color jitter, occlusion |
+| PyTorch Lightning trainer | `src/train.py` | Train/val loop, AdamW + cosine LR, W&B/CSV |
+| Evaluation metrics | `src/evaluate.py` | PCK@0.2, AUC, MPJPE, tracking ID switch rate |
+| C++ preprocess wrapper | `cpp/preprocess.cpp` | pybind11, AVX2, optional CUDA path |
+| C++ build system | `cpp/CMakeLists.txt` | cmake, optional -DUSE_CUDA |
 | Unit tests — models | `tests/test_models.py` | Shape, loss, batch consistency |
 | Unit tests — tracker | `tests/test_tracker.py` | ID persistence, IoU, SORT gating |
 | Unit tests — gesture | `tests/test_gesture.py` | Pinch, drag, extension detection |
+| Unit tests — data | `tests/test_data.py` | Heatmaps, augmentation, scaling roundtrip |
+| Unit tests — evaluate | `tests/test_evaluate.py` | PCK, MPJPE, ID switch rate, CSV logging |
 | Latency benchmark | `benchmarks/latency_benchmark.py` | CPU/GPU, P95/P99, FPS report |
 | Model config | `configs/model_config.yaml` | All hyperparams, zero hardcoding |
 | Docker | `docker/Dockerfile`, `docker-compose.yml` | CPU + GPU targets |
@@ -63,15 +72,10 @@ Visualizer                                   skeleton overlay + gesture UI
 
 | Task | Priority | Notes |
 |---|---|---|
-| FreiHAND dataloader | High | `src/data/freihand.py` — load RGB + 21-kp GT + depth |
-| PyTorch Lightning trainer | High | `src/train.py` — train/val loop, mAP eval |
-| Gaussian heatmap generation | High | Build GT heatmaps from kp coords (σ=2) |
-| mAP evaluation | High | PCK metric on validation set, target >0.6 |
-| C++ preprocess wrapper | Medium | `cpp/preprocess.cpp` — BGR→tensor hot path |
-| Data augmentation pipeline | Medium | Flip, rotate, scale, color jitter |
-| Checkpoint save/load | Medium | Best-by-mAP, resume training |
-| SORT Hungarian assignment | Low | Replace greedy IoU with scipy.linear_sum_assignment |
-| Open3D 3D visualization | Low | Project (u,v,z_rel) → 3D skeleton |
+| SORT Hungarian assignment | Medium | Replace greedy IoU with `scipy.linear_sum_assignment` |
+| Open3D 3D visualization | Low | Project (u,v,z_rel) → 3D skeleton point cloud |
+| Checkpoint export script | Low | `scripts/export_checkpoint.py` — save best.pt from Lightning ckpt |
+| HO3D dataloader | Low | Hand-object interaction dataset for robustness fine-tuning |
 
 ---
 

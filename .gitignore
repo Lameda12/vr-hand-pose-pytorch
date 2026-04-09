@@ -18,8 +18,8 @@ checkpoints/
 *.pth
 *.ckpt
 
-# Data
-data/
+# Dataset files (not source code)
+/data/
 *.h5
 *.hdf5
 
