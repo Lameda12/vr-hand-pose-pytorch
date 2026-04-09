@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: pytest tests/ -v --cov=src --cov-report=term-missing
+
+  benchmark-cpu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: python benchmarks/latency_benchmark.py --device cpu --resolution 720p --runs 50
+
+  benchmark-gpu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: python benchmarks/latency_benchmark.py --device cuda --fp16 --resolution 720p --runs 100

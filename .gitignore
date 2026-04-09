@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# PyTorch checkpoints
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Data
+data/
+*.h5
+*.hdf5
+
+# Logs
+logs/
+wandb/
+*.log
+*.csv
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# C++ build artifacts
+cpp/build/
+*.o
+*.a
+*.so
+CMakeCache.txt
+CMakeFiles/
