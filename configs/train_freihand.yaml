@@ -1,0 +1,49 @@
+# Training config: FreiHAND-only baseline run
+# Tuned for egocentric single-hand detection
+
+model:
+  backbone: "mobilenetv3"
+  pretrained_backbone: true
+  use_depth_head: true
+  input_size: [640, 480]
+
+training:
+  batch_size: 16
+  epochs: 100
+  learning_rate: 5.0e-4
+  weight_decay: 1.0e-4
+  lr_scheduler: "cosine"
+  warmup_epochs: 5
+
+  loss:
+    lambda_heatmap: 10.0
+    lambda_depth: 1.0
+
+  augmentation:
+    horizontal_flip: true
+    rotation_max_deg: 30
+    scale_range: [0.8, 1.2]
+    brightness_jitter: 0.3
+    color_jitter: 0.2
+
+inference:
+  det_threshold: 0.5
+  fp16: true
+  device: "auto"
+
+tracker:
+  type: "sort"
+  max_misses: 5
+  min_hits: 2
+  iou_threshold: 0.3
+  sort:
+    min_confidence: 0.4
+
+gesture:
+  pinch_px_threshold: 30.0
+  extend_ratio: 1.2
+
+demo:
+  camera_idx: 0
+  display_fps: true
+  max_hands: 2

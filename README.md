@@ -72,10 +72,21 @@ Visualizer                                   skeleton overlay + gesture UI
 
 | Task | Priority | Notes |
 |---|---|---|
-| SORT Hungarian assignment | Medium | Replace greedy IoU with `scipy.linear_sum_assignment` |
-| Open3D 3D visualization | Low | Project (u,v,z_rel) → 3D skeleton point cloud |
-| Checkpoint export script | Low | `scripts/export_checkpoint.py` — save best.pt from Lightning ckpt |
-| HO3D dataloader | Low | Hand-object interaction dataset for robustness fine-tuning |
+| SORT Hungarian assignment | `src/tracker/sort_tracker.py` | scipy.linear_sum_assignment, globally optimal |
+| HO3D dataloader | `src/data/ho3d.py` | Hand-object occlusion dataset, compatible API |
+| Combined dataloader | `src/data/ho3d.py:build_combined_dataloader` | FreiHAND + HO3D concat |
+| Checkpoint export | `scripts/export_checkpoint.py` | Lightning .ckpt → plain .pt state dict |
+| Torch profiler | `benchmarks/profile_inference.py` | Op-level breakdown, chrome trace output |
+| Config: FreiHAND baseline | `configs/train_freihand.yaml` | Single-dataset training config |
+| Config: combined fine-tune | `configs/train_combined.yaml` | FreiHAND + HO3D robustness config |
+
+### Remaining / Future
+
+| Task | Priority | Notes |
+|---|---|---|
+| Open3D 3D visualization | Low | Project (u,v,z_rel) → live 3D skeleton |
+| TensorRT/ONNX export | Future | Only after baseline PCK@0.2 >0.6 validated |
+| HO3D full integration test | Low | Needs dataset download |
 
 ---
 
@@ -108,6 +119,48 @@ bash scripts/run_benchmark.sh
 # or directly:
 python benchmarks/latency_benchmark.py --device cpu --resolution 720p
 python benchmarks/latency_benchmark.py --device cuda --fp16 --resolution 720p
+```
+
+### Profile (find hot ops)
+
+```bash
+python benchmarks/profile_inference.py --device cuda --resolution 720p
+# → benchmarks/profile_trace.json  (open in chrome://tracing)
+# → benchmarks/profile_summary.txt (top-20 ops by CUDA time)
+```
+
+### Train
+
+```bash
+# FreiHAND baseline
+python -m src.train --config configs/train_freihand.yaml --data /data/freihand
+
+# Smoke test (1 batch only)
+python -m src.train --config configs/train_freihand.yaml --data /data/freihand --fast-dev-run
+
+# Combined FreiHAND + HO3D (after baseline converges)
+python -m src.train --config configs/train_combined.yaml --data /data/freihand \
+    --checkpoint checkpoints/best.ckpt
+
+# Export trained model for deployment
+python scripts/export_checkpoint.py \
+    --ckpt checkpoints/best.ckpt \
+    --output checkpoints/best.pt \
+    --verify
+```
+
+### Build C++ Preprocessing Extension
+
+```bash
+cd cpp
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+# Optional: cmake -B build -DUSE_CUDA=ON -DCMAKE_BUILD_TYPE=Release
+
+# Then in Python:
+import sys; sys.path.insert(0, "cpp/build")
+import preprocess_cpp
+tensor = preprocess_cpp.preprocess_bgr(frame_bgr, out_w=640, out_h=480)
 ```
 
 ### Docker

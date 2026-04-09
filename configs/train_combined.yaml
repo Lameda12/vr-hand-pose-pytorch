@@ -1,0 +1,49 @@
+# Training config: FreiHAND + HO3D combined for occlusion robustness
+# Use after FreiHAND baseline converges (>0.6 PCK@0.2)
+
+model:
+  backbone: "mobilenetv3"
+  pretrained_backbone: false   # load from freihand checkpoint instead
+  use_depth_head: true
+  input_size: [640, 480]
+
+training:
+  batch_size: 12              # smaller batch: HO3D frames are harder
+  epochs: 50
+  learning_rate: 1.0e-4       # lower LR for fine-tuning
+  weight_decay: 1.0e-4
+  lr_scheduler: "cosine"
+  warmup_epochs: 2
+
+  loss:
+    lambda_heatmap: 10.0
+    lambda_depth: 1.0
+
+  augmentation:
+    horizontal_flip: true
+    rotation_max_deg: 40       # more rotation for object-grasping poses
+    scale_range: [0.75, 1.3]
+    brightness_jitter: 0.4
+    color_jitter: 0.3
+
+inference:
+  det_threshold: 0.4           # slightly lower threshold for occluded hands
+  fp16: true
+  device: "auto"
+
+tracker:
+  type: "sort"
+  max_misses: 7               # longer miss tolerance for occlusion
+  min_hits: 2
+  iou_threshold: 0.25
+  sort:
+    min_confidence: 0.35
+
+gesture:
+  pinch_px_threshold: 35.0   # slightly looser for occluded pinch
+  extend_ratio: 1.2
+
+demo:
+  camera_idx: 0
+  display_fps: true
+  max_hands: 2
