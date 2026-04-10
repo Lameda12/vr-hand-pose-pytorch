@@ -18,7 +18,8 @@ from src.models.hand_pose_net import HandPoseNet, NUM_KEYPOINTS
 from src.tracker.kalman_tracker import KalmanHandTracker
 from src.tracker.sort_tracker import SORTTracker
 from src.demo.gesture_state import GestureState, Gesture
-from src.demo.visualizer import viz_skeleton, viz_gesture_overlay, SKELETON_EDGES  # noqa: F401 — verify importable
+from src.demo.visualizer import viz_skeleton, viz_gesture_overlay
+from src.demo.webcam_demo import SKELETON_EDGES  # noqa: F401 — verify importable
 from src.data.heatmap_utils import build_heatmaps, softargmax2d
 from src.data.augmentation import HandAugmentation
 from src.evaluate import PoseEvaluator, TrackingEvaluator, EvalMetrics
