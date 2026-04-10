@@ -185,7 +185,9 @@ class PoseEvaluator:
 
         curves = np.stack(self._pck_curves)   # [N, T]
         mean_curve = curves.mean(0)           # [T]
-        auc = float(np.trapz(mean_curve, PCK_THRESHOLDS) / (PCK_THRESHOLDS[-1] - PCK_THRESHOLDS[0]))
+        # np.trapz removed in NumPy 2.0; np.trapezoid added in 1.25
+        _trapz = getattr(np, "trapezoid", None) or np.trapz
+        auc = float(_trapz(mean_curve, PCK_THRESHOLDS) / (PCK_THRESHOLDS[-1] - PCK_THRESHOLDS[0]))
 
         # PCK@0.2 = index closest to 0.2 in thresholds
         idx_02 = int(np.argmin(np.abs(PCK_THRESHOLDS - 0.2)))
