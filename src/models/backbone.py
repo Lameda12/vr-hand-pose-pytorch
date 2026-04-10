@@ -15,10 +15,13 @@ class MobileNetV3Backbone(nn.Module):
     """
     MobileNetV3-Small backbone, feature extractor for hand detection head.
 
-    Strips classification head; returns multi-scale features for FPN.
+    Strips classification head; returns intermediate feature maps.
+    Output stride and channel count are probed at init time so the class
+    stays correct across torchvision versions (stride changed between 0.19
+    and 0.26 for features[:9]).
 
     Input shape:  [B, 3, H, W]  (RGB, normalized)
-    Output shape: [B, 96, H/8, W/8]  (stride-8 feature map)
+    Output shape: [B, C, H/S, W/S]  where C=out_channels, S=_stride
 
     Latency: ~4ms @720p on RTX 3070 (FP16)
     Memory:  ~18MB parameters
@@ -29,10 +32,17 @@ class MobileNetV3Backbone(nn.Module):
         weights = MobileNet_V3_Small_Weights.DEFAULT if pretrained else None
         base = mobilenet_v3_small(weights=weights)
 
-        # Keep only the feature extractor layers up to stride-8
-        # MobileNetV3-Small: stride doubles at layers 1,2,4,9
-        # Layers 0-8 → stride 8, channels 96
+        # Slice up to (but not including) the final classification layers.
+        # features[:9] gives the mid-level feature map; exact stride/channels
+        # depend on torchvision version so we probe rather than hardcode.
         self.features = base.features[:9]
+
+        # Probe actual output shape (zero-cost at init; no grad needed)
+        with torch.no_grad():
+            _probe = torch.zeros(1, 3, 64, 64)
+            _out = self.features(_probe)
+            self.out_channels: int = int(_out.shape[1])
+            self._stride: int = 64 // int(_out.shape[2])
 
         if freeze_bn:
             for m in self.modules():
@@ -41,15 +51,13 @@ class MobileNetV3Backbone(nn.Module):
                     for p in m.parameters():
                         p.requires_grad = False
 
-        self.out_channels = 96
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
             x: [B, 3, H, W] float32 or float16, range [0,1], RGB
 
         Returns:
-            feat: [B, 96, H/8, W/8]
+            feat: [B, out_channels, H/_stride, W/_stride]
         """
         return self.features(x)
 

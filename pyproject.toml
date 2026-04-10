@@ -45,7 +45,19 @@ filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.coverage.run]
 source = ["src"]
-omit = ["tests/*", "benchmarks/*"]
+omit = [
+    "tests/*",
+    "benchmarks/*",
+    # IO-bound: require webcam/display — untestable in CI
+    "src/demo/webcam_demo.py",
+    "src/demo/viz3d.py",
+    "src/demo/__main__.py",
+    # Require dataset download — untestable in CI
+    "src/data/freihand.py",
+    "src/data/ho3d.py",
+    # Requires pytorch-lightning + dataset — untestable in CI
+    "src/train.py",
+]
 
 [tool.coverage.report]
 fail_under = 80
